@@ -1,0 +1,27 @@
+
+extends ./layout/main
+
+block styles
+  link(href="#{url_cdn}/pc/css/pay.css" rel="stylesheet")
+
+block content
+  div(id="headerId")!= html_header
+  iframe(width="100%", height="900px", src="#{url}", frameborder="0", allowfullscreen)
+  include ./layout/footer
+block scripts
+  script.
+    window.gLang=gLang=LangService.states.lang;
+    
+    ga('send', 'pageview',location.pathname);
+    
+    //- 出金、入金页面跨域调用notifyBalanceRefresh接口时需要把domain统一
+    document.domain="ultrabanc.com";
+    function notifyBalanceRefresh() {
+      var balanceText = document.getElementById("id_balance");
+      if (balanceText) {
+        balanceText.click();
+      }
+    }
+    
+  script(src="#{url_cdn}/pc/js/common.js")
+  script(src="#{url_cdn}/pc/js/header.js")

@@ -1,0 +1,13 @@
+extends ./layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/trade.css" rel="stylesheet")
+  
+block content
+  div.container
+    div.wrap
+      div#contentId  
+    include ./layout/footer
+block scripts
+  script(src="#{url_cdn}/mobile/js/libs/socket.io-1.4.5.js" type="text/javascript")
+  script(src="#{url_cdn}/mobile/js/common.js" type="text/javascript")
+  script(src="#{url_cdn}/mobile/js/trade.js" type="text/javascript")

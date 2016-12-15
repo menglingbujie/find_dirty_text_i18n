@@ -1,0 +1,19 @@
+
+extends ./layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/info.css" rel="stylesheet")
+  
+block content
+  body
+    div(class="toast")
+    div(id="dialogContainerId")
+    div.container
+      div.wrap.info
+        div.header
+          a.icon.user.back(href="javascript:history.back(-1)")
+          div.title= legal.title
+        
+        div.content
+          each val in legal.content
+            p= val 
+            br

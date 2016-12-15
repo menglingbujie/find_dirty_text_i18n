@@ -1,0 +1,34 @@
+//
+   Created by Administrator on 2016/11/18.
+script(type="text/javascript").
+  (function(map, lang, config) {
+
+     window.LangService = {
+      states: {
+        lang: lang,
+        originLang: lang,
+        map: map[lang] || {}
+      },
+
+      __full: map || {},
+
+      _normalizeLang: function (lang) {
+        if (typeof lang == 'string') {
+          lang = lang.toLowerCase();
+        }
+
+        if (config.alias.hasOwnProperty(lang)) {
+          return config.alias[lang];
+        }
+
+        return config.defaultLang;
+      },
+      i18n: function (key, def) {
+        if (this.states.map.hasOwnProperty(key)) {
+          return this.states.map[key];
+        }
+        return def || key;
+      }
+    }
+
+  })(!{JSON.stringify(LangService.map(outputLangKeys))}, '!{LangService.lang}', !{JSON.stringify(LangFactory.config)});

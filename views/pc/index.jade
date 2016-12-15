@@ -1,0 +1,51 @@
+extends ./layout/main
+
+block styles
+  link(href="#{url_cdn}/pc/css/index.css" rel="stylesheet")
+    
+block content
+  div(id="dialogContainerId")
+  div(id="containerId" style="display:block;")!= html
+  include ./layout/footer
+block scripts
+  script.
+    window.gLang=gLang= LangService.states.lang;
+    function createIfrVideo(){
+      var _ifr = document.createElement("iframe");
+      var _videoUrl = "https://www.youtube.com/embed/2g_r21lFS6g";
+      if(gLang&&(gLang.toLowerCase()=="zh-cn"||gLang.toLowerCase()=="zh-tw"||gLang.toLowerCase()=="zh-hk")){
+        _ifr = document.createElement("video");
+        _ifr.style.background = "black";
+        _ifr.controls = "controls";
+        _ifr.autoplay = "autoplay";
+        _ifr.innerHTML = '<source src="https://static.8dbank.cn/video/ultrabanc_cn.mp4">';
+      }else if(gLang && (gLang.toLowerCase()=="pl")){
+        _videoUrl ="https://www.youtube.com/embed/r2zKXvmibRw";
+      }else if(gLang && (gLang.toLowerCase()=="pt")){
+      _videoUrl ="https://www.youtube.com/embed/qXIZhyHN3i0";
+      }
+      if( gLang&&(gLang.toLowerCase()!="zh-cn") && (gLang.toLowerCase()!="zh-tw") && (gLang.toLowerCase()!="zh-hk")){
+        _ifr.src=_videoUrl;
+        _ifr.frameBorder = "0";
+        _ifr.allowFullScreen=true;
+        _ifr.id="ifr";
+      }
+
+      var _ele = document.getElementById("ifrVideoId");
+      if(_ele){
+        _ele.appendChild(_ifr);
+      }
+    }
+    function domReady(){
+      createIfrVideo();
+    }
+    if(document.addEventListener){
+      document.addEventListener("DOMContentLoaded",domReady,false);
+    }else if(document.attachEvent){
+      document.attachEvent("onload",domReady,false);
+    }
+    try{ga('send', 'pageview',location.pathname);}catch(e){}
+
+  script(src="#{url_cdn}/pc/js/common.js")
+  script(src="#{url_cdn}/pc/js/libs/jquery.min.js")
+  script(src="#{url_cdn}/pc/js/index.js")

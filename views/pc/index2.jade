@@ -1,0 +1,139 @@
+extends ./layout/main
+
+block styles
+  link(href="#{url_cdn}/pc/css/index2.css" rel="stylesheet")
+    
+block content
+  div(id="headerId")!= html_header
+  div.container
+    div.section.banner
+      div.panel_banner
+        div.banners.swiper-container#bannerContainerId
+          div.swiper-wrapper#bannerListId
+        div.wrap
+          div#btnBannerPrevId.swiper-button-prev.swiper-button-white
+          div#btnBannerNextId.swiper-button-next.swiper-button-white
+          div#bannerPagination.swiper-pagination.pagination
+        div.mask
+          div.inner_mask
+      div.panel_content
+        div.item_video
+          h1.title= LangService.flat("pc","Educational Video")
+          div.video#ifrVideoId
+          div.swiper-container#carouselContainerId
+            div.swiper-wrapper.carousel#carouselListId
+        div.item_info
+          h1.title= LangService.flat("pc","WORLD'S LEADING BINARY OPTIONS")
+          div.diver
+          div.desp= LangService.flat("pc","Technical strength and strong capital support. Ultrabanc made trading easier with more than 90% profit rate.")
+          a.btn.gotrade(href="/trade")= LangService.flat("pc","TRADE NOW")
+          
+    div.section.trade
+      div.wrap
+        div.panel
+          h1.title= LangService.flat("pc","Ultrabanc Binary Options Trading Platform")
+          h1.title= LangService.flat("pc","Easy way to profit")
+          div.info= LangService.flat("pc","Ultrabanc trading platform, is a leading provider of internet financial services. Ultrabanc has a strong financial background, an excellent technical operation team and it is committed to building a world's leading online platform for binary options trading. Traders can trade from their computers through Windows and can invest in multiple assets including stocks, currency pairs, commodities and indices by predicting the price of the underlying asset.")
+          div.download
+            a.btn.dl.ios(href="#")
+            a.btn.dl.android(href="#")
+      
+    div.section.statistics
+      div.wrap
+        div.total_trade
+          div.text= LangService.flat("pc","Total amount of transactions")
+          div.num#totalTradeAmountId
+        div.total_users
+          div.num#totalTradeUsersId
+          div.text= LangService.flat("pc","Total number of users")
+          a.link(href="/trade")= LangService.flat("pc","TRADE NOW")
+            i.icon.arrow.right
+        div.total_earn
+          div.num#totalUserAmountId 
+          div.text= LangService.flat("pc","Total amount of customer profit")
+          a.link(href="/trade")= LangService.flat("pc","TRADE NOW")
+            i.icon.arrow.right
+    div.section.demo
+      div.wrap
+        div.panel
+          h1.title= LangService.flat("pc","Free Demo Account with $1000")
+          h1.title= LangService.flat("pc","Start Trading Now")
+          div.info= LangService.flat("pc","We provide you with a free Demo Account with a balance of $1000, register, practice different trading strategies and improve your overall trading skills. There are no risks in trading with Demo Account. And you can freely switch to Real Account at any time.")
+          a.link(href="/trade")= LangService.flat("pc","TRADE NOW2")
+      
+    div.section.ads
+      div.wrap
+        div.item.coorp
+        div.item.hb
+          h2.title= LangService.flat("pc","High Profit")
+          h2.title= LangService.flat("pc","More than 90% profit rate")
+          div.num 01
+        div.item.stock
+        div.item
+          h2.title= LangService.flat("pc","24 Hours")
+          h2.title= LangService.flat("pc","Continuous trading time")
+          div.num 02
+        div.item.computer
+        div.item
+          h2.title= LangService.flat("pc","Start Trading")
+          h2.title= LangService.flat("pc","With diverse assets")
+          div.num 03
+        div.item
+          h2.title= LangService.flat("pc","Withdrawal")
+          h2.title= LangService.flat("pc","Fast")
+          div.num 04
+    div.section.safe
+      div.title= LangService.flat("pc","Safety Supervision - Your Financial Security Is Our Top Priority")
+      div.info= LangService.flat("pc","Ultrabanc is a global financial services provider, we are committed to create a secure trading environment and safeguard traders' interests. Our strict financial agreement guarantee the security of your investments.")
+        a.lisence.cn#lisenceLink(href="https://www.vfsc.vu/wp-content/uploads/2015/12/List-of-Licensees-under-Dealers-in-Securities-Licensing-Act-CAP-70-19.09.2016.pdf" target="_blank")= LangService.flat("pc","Regulated by the Vanuatu authorities under License 14745")
+        i.icon.trade_card#tradeCardId
+  div#onlineId!= html_online
+
+  include ./layout/footer
+
+block scripts
+  script(src="#{url_cdn}/pc/js/libs/jquery.min.js")
+  script.
+    var gStaticsUrl = "#{url_statics}";
+    var gLastTradesUrl = "#{url_last_trades}";
+    var gUrlCdn = "#{url_cdn}";
+    window.gLang=gLang= LangService.states.lang;
+    function createIfrVideo(){
+      var _ifr = document.createElement("iframe");
+      var _videoUrl = "https://www.youtube.com/embed/2g_r21lFS6g";
+      if(gLang&&(gLang.toLowerCase()=="zh-cn"||gLang.toLowerCase()=="zh-tw"||gLang.toLowerCase()=="zh-hk")){
+        _ifr = document.createElement("video");
+        _ifr.controls = "controls";
+        _ifr.autoplay = "autoplay";
+        _ifr.innerHTML = '<source src="https://static.8dbank.cn/video/ultrabanc_cn.mp4">';
+      }else if(gLang && (gLang.toLowerCase()=="pl")){
+        _videoUrl ="https://www.youtube.com/embed/r2zKXvmibRw";
+      }else if(gLang && (gLang.toLowerCase()=="pt")){
+      _videoUrl ="https://www.youtube.com/embed/qXIZhyHN3i0";
+      }
+      if( gLang&&(gLang.toLowerCase()!="zh-cn") && (gLang.toLowerCase()!="zh-tw") && (gLang.toLowerCase()!="zh-hk")){
+        _ifr.src=_videoUrl;
+        _ifr.frameBorder = "0";
+        _ifr.allowFullScreen=true;
+        _ifr.id="ifr";
+      }
+    
+      var _ele = document.getElementById("ifrVideoId");
+      if(_ele){
+        _ele.appendChild(_ifr);
+      }
+    }
+    function domReady(){
+      createIfrVideo();
+    }
+    if(document.addEventListener){
+      document.addEventListener("DOMContentLoaded",domReady,false);
+    }else if(document.attachEvent){
+      document.attachEvent("onload",domReady,false);
+    }
+    try{ga('send', 'pageview',location.pathname);}catch(e){}
+  
+  script(src="#{url_cdn}/pc/js/common.js")
+  script(src="#{url_cdn}/pc/js/header.js")
+  script(src="#{url_cdn}/pc/js/online_service.js")
+  script(src="#{url_cdn}/pc/js/vjs/index.js")

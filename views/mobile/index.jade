@@ -1,0 +1,36 @@
+extends ./layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/index.css" rel="stylesheet")
+block content
+
+  div.container
+    div.wrap
+      div.header
+        div.title #{LangService.flat('mobile', "Products2")}
+      div#contentId  
+    include ./layout/footer
+  
+block scripts
+  script(src="#{url_cdn}/mobile/js/libs/socket.io-1.4.5.js" type="text/javascript")
+  script(src="#{url_cdn}/mobile/js/common.js" type="text/javascript")
+  script(src="#{url_cdn}/mobile/js/index.js" type="text/javascript")
+  script.
+    //- var EventUtil = {
+    //-   addHandler: function (element, type, handler) {
+    //-       if (element.addEventListener) {
+    //-           element.addEventListener(type, handler, false);
+    //-       } else if (element.attachEvent) {
+    //-           element.attachEvent("on" + type, handler);
+    //-       } else {
+    //-           element["on" + type] = handler;
+    //-       }
+    //-   }
+    //- };
+    //- (function () {
+    //-   var showCount = 0;
+    //-   EventUtil.addHandler(window, "load", function () {
+    //-   });
+    //-   EventUtil.addHandler(window, "pageshow", function (event) {
+    //-     alert(event.persisted)
+    //-   });
+    //- })();

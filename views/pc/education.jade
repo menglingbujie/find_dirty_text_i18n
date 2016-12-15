@@ -1,0 +1,17 @@
+extends ./layout/main
+
+block styles
+  link(href="#{url_cdn}/pc/css/education.css" rel="stylesheet")
+  
+block content
+  div(id="dialogContainerId")
+  div(id="containerId" style="display:block;")!= html
+  include ./layout/footer
+block scripts
+  script.
+    window.gLang=gLang=LangService.states.lang;
+
+    try{ga('send', 'pageview',location.pathname);}catch(e){}
+
+  script(src="#{url_cdn}/pc/js/common.js")
+  script(src="#{url_cdn}/pc/js/education.js")

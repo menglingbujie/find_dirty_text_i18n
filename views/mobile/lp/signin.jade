@@ -1,0 +1,414 @@
+extends ./layout/main
+
+block styles
+  style.
+    *{box-sizing:border-box;}
+    html,body{background-color:#38363b;height:100%;}
+    .banner{
+      width:100%;height:3.933333333333333rem;
+      background-image:url("/mobile/lp/images/bg_reg_banner.png");
+      background-size:100% 100%;
+    }
+    .title{
+      width:100%;height:1.5333333333333334rem;
+      background-image:url("/mobile/lp/images/bg_reg_title.png");
+      background-size:100% 100%;
+    }
+    .form{width:92%;margin:0 auto;}
+    .form>.field{height:1.0666666666666667rem;overflow:hidden;}
+    .form>.field>input{
+      height:100%;padding-left:0.4rem;width:100%;
+      border-radius: 0.10666666666666667rem;
+      -webkit-border-radius: 0.10666666666666667rem;
+      -moz-border-radius: 0.10666666666666667rem;
+      font-size:0.4266666666666667rem;border:none;
+    }
+    .form>.field>input[type=button]{padding:0;background-color:#debe70;color:black;border:none;}
+    .form>.field.name>input:first-child,.form>.field.name>input:last-child{width:49%;display:inline-block;}
+    .form>.field.name>input:last-child{margin-left:2%;}
+
+    .form>.field.sms_code>input:first-child{width:58%;display:inline-block;vertical-align:top;height:100%;}
+    .form>.field.sms_code>input:last-child{width:40%;margin-left:2%;display:inline-block;}
+    .form>.field.error{height:0.6rem;line-height:0.6rem;color: #ed4f60;}
+    .form>.field.error>.tips{color: #ed4f60;}
+    #btnSendSmsCodeId.disable{background-color:gray;color:white;}
+block content
+  div.banner
+  div.title
+  div.form
+    div.field.name
+      input#firstNameId(type="text" name="name" placeholder="姓")
+      input#lastNameId(type="text" name="name" placeholder="名")
+    div.field.name.error
+      div.tips
+    div.field
+      input#emailId(type="email" name="email" placeholder="邮箱")
+    div.field.email.error
+      div.tips
+    div.field
+      input#phoneId(type="tel" name="phone" placeholder="手机号码")
+    div.field.phone.error
+      div.tips
+    div.field.sms_code
+      input.sms_code#smsCodeId(type="tel" name="smscode" placeholder="验证码")
+      input.btn#btnSendSmsCodeId(type="button" value="发送验证码")
+    div.field.sms_code.error
+      div.tips
+    div.field
+      input#passwordId(type="password" name="password" placeholder="密码" min=6 max=14)
+    div.field.password.error
+      div.tips
+    div.field
+      input.btn.get(type="button" value="立即领取")
+    div.field.system.error
+      div.tips
+block scripts
+  script.
+    var SERVER={
+      host:"www.ultrabanc.com",
+      api:{
+        "send_sms_code":"//s.ultrabanc.com/user/send-register-s-m-s-code",//phone,lang
+        "do_register":"//s.ultrabanc.com/user/signup-cn",//firstname,lastname,currency,country,phoneumber,smscode,email.password,lang
+        "verify_phone_exist":"//s.ultrabanc.com/user/exist-phone",//phone,lang
+        "verify_email_exist":"//s.ultrabanc.com/user/exist-email",//email,lang
+      }
+    }
+    var ELE = {
+      btnSendSmsCode:$("#btnSendSmsCodeId"),
+      btnReg:$(".btn.get"),
+      passwordInput:$("#passwordId"),
+      smsCodeInput:$("#smsCodeId"),
+      emailInput:$("#emailId"),
+      phoneInput:$("#phoneId"),
+      firstNameInput:$("#firstNameId"),
+      lastNameInput:$("#lastNameId"),
+      errorPassword:$(".field.password.error"),
+      errorSmsCode:$(".field.sms_code.error"),
+      errorEmail:$(".field.email.error"),
+      errorName:$(".field.name.error"),
+      errorPhone:$(".field.phone.error"),
+    }
+    var utmSource = "";
+    
+    function init(){
+      //- var _urlParms=location.search.replace(/^\?*/,"").split("&");
+      //- if(_urlParms&&_urlParms.length>0){
+      //-   
+      //- }
+      //- console.log(_urlParms)
+      var matchUtmSource = location.search.match(/utm_source=(.*)\&*/);
+      utmSource=matchUtmSource&&matchUtmSource[1].replace(/\&.*/,"")||"";
+      initEvent();
+    }
+    function validField(value,regx){
+      return regx.test(value);
+    }
+    function verifyEmail(callback){
+      var _url = SERVER.api.verify_email_exist;
+      var _postData = {
+        "email":ELE.emailInput.val(),
+        "lang":"zh-CN"
+      }
+
+      $.post(_url,_postData,function(resp){
+        if(!resp||resp.status!=0){
+          showError(ELE.errorEmail,resp.msg);
+          return false;
+        }
+        callback();
+      });
+      
+      return true;
+    }
+    function verifyPhone(callback){
+      var _url = SERVER.api.verify_phone_exist;
+      var _postData = {
+        "phone_number":"+86"+ELE.phoneInput.val(),
+        "lang":"zh-CN"
+      }
+      $.post(_url,_postData,function(resp){
+        if(!resp||resp.status!=0){
+          showError(ELE.errorPhone,resp.msg);
+          return false;
+        }
+        hideError(ELE.errorPhone);
+        callback();
+      });
+      return true;
+    }
+    function onValidField(event){
+      var _target = event.target;
+      var _ele = $(_target);
+      var _value = _ele.val();
+      var _name =_ele.attr("name");
+      var _errorMsg = "";
+      var _hasError = false;
+      var _errorEle = null;
+      switch(_name){
+        case "name":{
+          _errorEle = ELE.errorName;
+          if(!_value||_value.length<0){
+            _hasError=true;
+            _errorMsg = "姓名不能为空，请正确输入。";
+          }
+        }
+        break;
+        case "phone":{
+          if(!_value||_value.length<0){return;}
+          _errorEle = ELE.errorPhone;
+          if(!validField(_value,/^[1][0-9][0-9]{9}$/)){
+            _errorMsg = "请正确输入手机号";
+            _hasError = true;
+          }else if(_value.length>0){
+            //- verifyPhone();
+          }
+        }break;
+        case "smscode":{
+          if(!_value){return;}
+          _errorEle = ELE.errorSmsCode;
+          if(validField(_value,/^\s*$/)){
+            _errorMsg = "校验码不能为空，请正确输入。";
+            _hasError = true;
+          }else if(!validField(_value,(/\d{6}/))){
+            _errorMsg = "请正确输入验证码";
+            _hasError = true;
+          }
+        }break;
+        case "email":{
+          if(!_value){return;}
+          _errorEle = ELE.errorEmail;
+          if(!validField(_value,/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)){
+            _errorMsg = "请正确输入登录邮箱！";
+            _hasError = true;
+          }else{
+            //- verifyEmail();
+          }
+        }break;
+        case "password":{
+           if(!_value){return;}
+           _errorEle = ELE.errorPassword;
+           if(_value.length<6||_value.length>14){
+            _errorMsg = "密码必须为6到14位";
+            _hasError = true;
+          }
+        }break;
+      }
+      if(_hasError){
+        showError(_errorEle,_errorMsg);
+      }else{
+        hideError(_errorEle);
+      }
+    }
+
+    function hideError(ele){
+      var _tipsEle = ele.find(".tips");
+      if(_tipsEle){
+        _tipsEle.html("").hide();
+      }
+    }
+    function showError(ele,text){
+      var _tipsEle = ele.find(".tips");
+      if(_tipsEle){
+        _tipsEle.html(text).show();
+      }
+    }
+    function initEvent(){
+      ELE.firstNameInput.on("blur",onValidField);
+      ELE.lastNameInput.on("blur",onValidField);
+      ELE.passwordInput.on("blur",onValidField);
+      ELE.smsCodeInput.on("blur",onValidField);
+      ELE.emailInput.on("blur",onValidField);
+      ELE.phoneInput.on("blur",onValidField);
+      ELE.btnSendSmsCode.on("click",doSendSmsCode);
+      ELE.btnReg.on("click",doRegister);
+
+    }
+    init();
+    
+    var smsCodeTimer = null;
+    function realSendSmsCode(){
+      var _phone = "+86"+ELE.phoneInput.val();
+      var _postData = {
+        "phonenumber":_phone,
+        "area_code":"+86",
+        "lang":"zh-CN"
+      }
+      $.post(SERVER.api.send_sms_code,_postData,function(resp){
+        if(!resp||resp.status!=1){
+          showError(ELE.errorSmsCode,resp.msg);
+          return false;
+        }
+        var _btnText = ELE.btnSendSmsCode.val();
+        var CODE_TIMEOUT = 120;
+        ELE.btnSendSmsCode.val(CODE_TIMEOUT).attr("disable",true).addClass("disable");
+
+        //开始计时
+        if(smsCodeTimer){clearInterval(smsCodeTimer)}
+        smsCodeTimer = setInterval(function(){
+          CODE_TIMEOUT--;
+          ELE.btnSendSmsCode.val(CODE_TIMEOUT);
+          if(CODE_TIMEOUT<=0){
+            clearInterval(smsCodeTimer);
+            ELE.btnSendSmsCode.val(_btnText).attr("disable","").removeClass("disable");
+          }
+        },1000);
+      });
+      
+      return false;
+    }
+    
+    function doSendSmsCode(){
+      if(ELE.btnSendSmsCode.hasClass("disable")){return false;}
+      verifyPhone(realSendSmsCode);
+    }
+    function validFieldBeforeRegister(){
+      if($(".field.name.error>.tips").html()){return false;}
+      if($(".field.email.error>.tips").html()){return false;}
+      if($(".field.phone.error>.tips").html()){return false;}
+      if($(".field.sms_code.error>.tips").html()){return false;}
+      if($(".field.password.error>.tips").html()){return false;}
+      
+      hideError($(".field.error"));
+
+      var _firstNameValue = ELE.firstNameInput.val()||"";
+      var _lastNameValue = ELE.lastNameInput.val()||"";
+      var _phoneValue= ELE.phoneInput.val()||"";
+      var _emailValue=ELE.emailInput.val()||"";
+      var _passwdValue=ELE.passwordInput.val()||"";
+      var _codeValue=ELE.smsCodeInput.val()||0;
+
+      if(!_firstNameValue){
+        showError(ELE.errorName,"姓名不能为空，请正确输入。");
+        return false;
+      }else{
+        hideError(ELE.errorName);
+      }
+      if(!_lastNameValue){
+        showError(ELE.errorName,"姓名不能为空，请正确输入。");
+        return false;
+      }else{
+        hideError(ELE.errorName);
+      }
+      if(!validField(_phoneValue,/^[1][0-9][0-9]{9}$/)){
+        showError(ELE.errorPhone,"请正确输入手机号");
+        return false;
+      }else{
+        hideError(ELE.errorPhone);
+      }
+      if(validField(_codeValue,/^\s*$/)||!validField(_codeValue,/\w+/)){
+        showError(ELE.errorSmsCode,"校验码不能为空，请正确输入。");
+        return false;
+      }else if(!validField(_codeValue,(/\d{6}/))){
+        showError(ELE.errorSmsCode,"请正确输入验证码");
+        return false;
+      }else{
+        hideError(ELE.errorSmsCode);
+      }
+      if(validField(_emailValue,/^\s*$/)){
+        showError(ELE.errorEmail,"登录邮箱不能为空！");
+        return false;
+      }else if(!validField(_emailValue,/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)){
+        showError(ELE.errorEmail,"请正确输入登录邮箱！");
+        return false;
+      }else{
+        hideError(ELE.errorEmail);
+      }
+      if(validField(_passwdValue,/^\s*$/)){
+        showError(ELE.errorPassword,"密码不能为空，请正确输入。");
+        return false;
+      }else if(_passwdValue.length<6||_passwdValue.length>14){
+        showError(ELE.errorPassword,"密码必须为6到14位");
+        return false;
+      }else{
+        hideError(ELE.errorPassword);
+      }
+      return true;
+    }
+    //输出多个注册错误
+    function showRegError(errors){
+      for(var i in errors){
+        switch(i){
+          case "phone_number":{
+            showError(ELE.errorPhone,errors[i]);
+          }
+          break;
+          case "email":{
+            showError(ELE.errorEmail,errors[i]);
+          }
+          break;
+          case "password":{
+            showError(ELE.errorPassword,errors[i]);
+          }
+          break;
+        }
+      }
+    }
+    var isRegisting = false;
+    function doRegister(){
+      
+      //如果点击注册还没返回结果就不让二次注册
+      if(isRegisting){return false;}
+      isRegisting = true;
+      //对所有项进行验证
+      var _ret = validFieldBeforeRegister();
+      if(!_ret){isRegisting=false;return false;}
+      
+      var _firstNameValue = ELE.firstNameInput.val()||"";
+      var _lastNameValue = ELE.lastNameInput.val()||"";
+      var _phoneValue= ELE.phoneInput.val()||"";
+      var _emailValue=ELE.emailInput.val()||"";
+      var _passwdValue=ELE.passwordInput.val()||"";
+      var _codeValue=ELE.smsCodeInput.val()||0;
+
+      var _postData = {
+        "SignupForm[first_name]":_firstNameValue,
+        "SignupForm[last_name]":_lastNameValue,
+        "SignupForm[phone_number]":"+86"+_phoneValue,
+        "SignupForm[email]":_emailValue,
+        "SignupForm[password]":_passwdValue,
+        "SignupForm[smscode]":_codeValue,
+        "SignupForm[country]":"CN",
+        "SignupForm[currency]":"CNY",
+        "SignupForm[currency_symbol]":"￥",
+        "SignupForm[utm_source]":utmSource,
+        "lang":"zh-CN"
+      };
+
+      var _url = SERVER.api.do_register;
+      $.ajax({
+        type:"POST",
+        url:_url,
+        data:_postData,
+        success:function(resp){
+            isRegisting = false;
+            //还原按钮状态
+            if(smsCodeTimer){clearInterval(smsCodeTimer)}
+            ELE.btnSendSmsCode.val("发送验证码").attr("disable","").removeClass("disable");
+            if(!resp||resp.status!=1){
+              if(resp.data){
+                showRegError(resp.data);  
+              }else if(resp.msg){
+                showError($(".field.error.system"),resp.msg);  
+              }
+              return false;
+            }
+            var _goUrl = "//"+SERVER.host+"/trade?token="+resp.data.token+"&lang=zh-CN";
+            location.href=_goUrl;
+        },
+        error:function(xhr,type){
+          isRegisting = false;
+          //还原按钮状态
+          if(smsCodeTimer){clearInterval(smsCodeTimer)}
+          ELE.btnSendSmsCode.val("发送验证码").attr("disable","").removeClass("disable");
+          
+          if(type=="parsererror"){
+            showError($(".field.error.system"),"数据语法错误，数据解析失败");  
+          }else{
+            showError($(".field.error.system"),type);  
+          }
+          return false;
+        }
+      });
+      
+      return false;
+    }

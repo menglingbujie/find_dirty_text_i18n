@@ -1,0 +1,46 @@
+div.fix_footer
+div.footer
+  ul#navListId
+    li 
+      a(href="/mobile")
+        i.icon.nav.product
+        div.text= LangService.flat('mobile', "Products")
+    li 
+      a(href="/mobile/trade")
+        i.icon.nav.trade
+        div.text= LangService.flat('mobile', "Trade")
+    li 
+      a(href="/mobile/trade_log")
+        i.icon.nav.detail
+        div.text= LangService.flat('mobile', "Transaction details")
+    li 
+      a(href="/mobile/account")
+        i.icon.nav.account
+        div.text= LangService.flat('mobile', "Account details")
+    li
+      a(href="/mobile/user")
+        i.icon.nav.user
+        div.text= LangService.flat('mobile', "User Center")
+script.
+  function initFooterNav(){
+    var _navJson = {"index":0,"trade":1,"trade_log":2,"account":3,"user":4}
+    var _navListId =document.getElementById("navListId");
+    var _navListItems = _navListId.getElementsByTagName("li");
+    if(!_navListItems||_navListItems.length<0){return;}
+    var _pname = location.pathname;
+    if(_pname){
+      _pname = _pname.replace(/^\/mobile\//,"");
+    }
+    if(_pname){
+      var _navIndex = _navJson[_pname]||0;
+      for(var i=0;i<_navListItems.length;i++){
+        var _navItem = _navListItems[i];
+        if(i==_navIndex){
+          _navItem.className="current";
+        }else{
+          _navItem.className="";
+        }
+      }
+    }
+  }
+  initFooterNav();

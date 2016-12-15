@@ -1,0 +1,14 @@
+extends ../layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/pay.css" rel="stylesheet")
+  
+block content
+  div.container.pay_result
+    div.wrap
+      div.header
+        div.title= LangService.flat("mobile","Payment result") 
+      div.content
+        div.logo
+          img(src="#{url_cdn}/mobile/images/icon_pay_fail.png")
+        div.info= LangService.flat("mobile","fail")
+        a.btn.gotrade(href="/mobile/user")= LangService.flat("mobile","Operation again")

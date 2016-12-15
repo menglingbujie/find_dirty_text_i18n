@@ -1,0 +1,173 @@
+extends ./layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/user.css" rel="stylesheet")
+  
+block content
+  div.container
+    div.wrap.user.unlogin
+      div.banner
+        div.title= LangService.flat('mobile', "User Center")
+        div.content.unlogin
+          a.btn.login(href="/mobile/user/login?backurl=user")= LangService.flat('mobile', "Sign In")
+          
+        div.content.login
+          div.uinfo
+            div.icon.userlogo
+              img(src="#{url_cdn}/mobile/images/icon_user.png")
+            div.uname#unameId 
+            div.money 
+              span= LangService.flat('mobile', "AmountOne")
+                |:
+              span#moneyId 
+          a.btn.deposit(href="/mobile/pay/deposit")=  LangService.flat('mobile', "Deposits")
+      div.content
+        ul.panel.deposit
+          li
+            a(href="/mobile/pay/withdraw") 
+              span
+                i.icon.nav.credit_car
+                | #{LangService.flat('mobile', "Withdraw")}
+              i.icon.user.go
+        ul.panel.lang
+          li
+            a#btnChangePasswordId(href="javascript:void(0)") 
+              span
+                i.icon.nav.lock 
+                | #{LangService.flat('mobile', "Change password")}
+              i.icon.user.go
+          li.line
+          li
+            a(href="/mobile/country/lang") 
+              span
+                i.icon.nav.global
+                | #{LangService.flat('mobile', "Change language")}
+              i.icon.user.go
+        ul.panel.info
+          li
+            a(href="/mobile/info/terms") 
+              span
+                i.icon.nav.privacy
+                | #{LangService.flat('mobile', "Terms & Conditions")}
+              i.icon.user.go
+          li.line
+          li
+            a(href="/mobile/info/privacy") 
+              span
+                i.icon.nav.terms
+                | #{LangService.flat('mobile', "Security & Privacy")}
+              i.icon.user.go
+          li.line      
+          li
+            a(href="/mobile/info/disclaimer") 
+              span
+                i.icon.nav.disclaimer
+                | #{LangService.flat('mobile', "General Disclaimer")}
+              i.icon.user.go
+          li.line      
+          li
+            a(href="/mobile/info/aml") 
+              span
+                i.icon.nav.aml
+                | #{LangService.flat('mobile', "AML")}
+              i.icon.user.go
+              
+        button.btn.loginout#btnLogoutId= LangService.flat('mobile', "Sign Out")
+        div.about_us  
+          em 
+            span= LangService.flat('mobile', "Website")
+              |: 
+            a(href="//www.ultrabanc.com") www.ultrabanc.com
+          em 
+            span= LangService.flat('mobile', "Customer Service")
+              |: 
+            a(href="tel://#{LangService.flat('mobile','tel')}")= LangService.flat('mobile',"tel")
+            
+    include ./layout/footer
+
+block scripts
+  script(src="#{url_cdn}/mobile/js/libs/zepto.min.js" type="text/javascript")
+  script.
+    var toastTimer = null;
+    function showToast(msg){
+      if(toastTimer){clearTimeout(toastTimer)}
+      
+      $(".toast").removeClass("hide").addClass("show").find(".msg").html(LangService.i18n(msg));
+      toastTimer = setTimeout(function(){
+        $(".toast").removeClass("show").addClass("hide").find(".msg").html(""); 
+      },3e3);
+    }
+    function User(){
+      var ELE = {
+        userPanel:$(".wrap.user"),
+        uname:$("#unameId"),
+        money:$("#moneyId"),
+        btnLogout:$("#btnLogoutId"),
+        btnChangePassword:$("#btnChangePasswordId"),
+        depositPanel:$(".panel.deposit"),
+      }
+      var Handler ={
+        doLogout:function(e){
+          var _token = Cookie.getCookie("token");
+          //delete token and userinfo 
+          Cookie.deleteCookie("token");
+          Cookie.deleteCookie("userinfo");
+          
+          $.get("#{url_api.logout}", {
+            "access-token": _token.replace(/^Bearer /, "")
+          }, function(resp){
+            //为了避免退出失败Token没有清除的问题，这里先清token，也就是只要点击退出
+            //前端就清token，不管后台是真的退出还是假的，因为两个账号同时登陆时，服务器不会给原来的
+            //账户推送退出消息，以至原账户退出失败
+            if (!resp.status || resp.status != 1) {
+              showToast(resp.msg);
+              return;
+            }
+            
+            //- ELE.userPanel.removeClass("login").addClass("unlogin");
+            //- ELE.depositPanel.show();
+            location.reload();
+          })  
+        },
+        gotoChangePassword:function(){
+          var _token = Cookie.getCookie("token");
+          if(!_token){
+            var _userinfo = Cookie.getCookie("userinfo");
+            if(_userinfo){Cookie.deleteCookie("userinfo")}
+            
+            location.href="/mobile/user/login"
+            return;
+          }
+          location.href="/mobile/user/change_password";
+        }
+      }
+      function initEvt(){
+        ELE.btnLogout.on("click",Handler.doLogout);
+        ELE.btnChangePassword.on("click",Handler.gotoChangePassword);
+      }
+      function initUserInfo(){
+        var _token = Cookie.getCookie("token");
+        var _userinfo = Cookie.getCookie("userinfo");
+        //- alert(_token);
+        //- alert(_userinfo);
+        if(!_token||!_userinfo){
+          ELE.userPanel.removeClass("login").addClass("unlogin");
+          return;
+        }
+        
+        try{var _uinfo = JSON.parse(unescape(_userinfo));}catch(e){
+          Cookie.deleteCookie("token");
+          Cookie.deleteCookie("userinfo");
+        }
+        ELE.uname.html(_uinfo.first_name+" "+_uinfo.last_name);
+        ELE.money.html(_uinfo.currency_symbol+_uinfo.balance);
+        ELE.userPanel.removeClass("unlogin").addClass("login");
+        ELE.depositPanel.show();
+      }
+      this.init = function(){
+        initUserInfo();
+        initEvt();
+      }
+    }
+    var user = new User();
+    user.init();
+  

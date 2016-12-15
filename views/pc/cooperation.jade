@@ -1,0 +1,136 @@
+extends ./layout/main
+
+block styles
+  link(href="#{url_cdn}/pc/css/cooperation.css" rel="stylesheet")
+
+block content
+  
+  div(id="dialogContainerId")
+  div(id="headerId")!= html_header
+  div(id="onlineId")!= html_online
+  div(id="containerId" style="display:block;height:auto;")
+      div.coop
+        div.coop_banner
+        div.coop_feature
+          div.wrap
+            div.coop_feature_text
+              h3 #{LangService.flat("pc","Mutually Beneficial Cooperation")} 
+              p.line
+              p.introduce #{LangService.flat("pc","Through cooperation we can reach the win-win result. Ultrabanc binary options cooperates with well-known trading agencies and brokers. Our know-how guarantees traders the best experience they can get.")}
+            
+            ul.coop_feature_list
+              li
+                i
+                p #{LangService.flat("pc","5 * 24 hours trading time")}
+              li
+                i
+                p!= LangService.flat("pc","Diverse assets Meet your diversified investment demands")
+              li
+                i
+                p!= LangService.flat("pc","Earn as much as 90% return Make money easily")
+              li
+                i
+                p!= LangService.flat("pc","Fixed income For each trading profit and loss rate")
+              li
+                i
+                p #{LangService.flat("pc","Instant withdrawal within 2 hours")}
+        div.coop_space
+        div.coop_aboutUs
+          div.wrap
+            ul.coop_about_list
+              li
+                h4 #{LangService.flat("pc","Company Profile")}
+                p #{LangService.flat("pc","Ultrabanc.com trading platform is independently operated by Ultrabanc, which is an Internet financial services provider, with strong financial background, great technical team and is committed to build a worldwide leading binary options.")}
+                p #{LangService.flat("pc","Ultrabanc mainly provides binary options online trading, which can be accessed by PC Windows. Through Ultrabanc website, you can trade sevral assets such as stocks, forex, commodities and indices. The only thing you need to do is decide if the price of an option will be high or low.")}
+              li.risk
+                h4 #{LangService.flat("pc","Risk Management")}
+                p #{LangService.flat("pc","Business enterprise and its related businesses are regulated under the supervision of Vanuatu Financial Services Commission (VFSC).")}
+                p #{LangService.flat("pc","Incorporation and License Number: 14745")}
+                div.vfsc
+                  img.fir(src="#{url_cdn}/pc/images/coop_risk2.jpg")
+                  img.sec(src="#{url_cdn}/pc/images/coop_risk_VFSC.jpg")
+              li
+                h4 #{LangService.flat("pc","Contact Us")}
+                p #{LangService.flat("pc","Govant Building 1st Floor PO Box 1276, Port Vila, Vanuatu Incorporation and License Number: 14745")}
+                p #{LangService.flat("pc","Email: info@ultrabanc.com")}
+                p #{LangService.flat("pc","Tel: (+852) 53482546")}
+            div.partner
+              div.title #{LangService.flat("pc","Business Partners")}
+              div.coop_partner_detail
+                img(src="#{url_cdn}/pc/images/coop_partner.png")
+                div.text
+                  h4 #{LangService.flat("pc","The Ant Studio")}
+                  p #{LangService.flat("pc","The Ant Studio was founded in April 2015, consists of analysts from Ant Financial Groups, the special financial commentator of CCTV channel and experienced Forex traders from private financial equities. The Ant Studio uphold the principle of \"Customer comes first and Integrity-based\", thus always putting traders\' profits in the first place.")}
+                  p #{LangService.flat("pc","Compared with other financial studios, the strongest characteristic of Ant Studio is: \"Only act as the Forex dealer, not the Market maker\". The open office allows traders to come by and visit, and experience a wonderful trading environment. Each trader can obtain instructions from professionals and for those trading in the studio, we guarantee fund securities and monthly stable revenues. By making money, you are able to adhere new financial knowledge.")}
+                  p #{LangService.flat("pc","Ant Studio has a convinient location, it is easy to come by and provides several diversified trading activities. Once a month, when“USA non-agricultural employment index”is released (the data has a great impact on Forex fluctuations), traders are invited for a wine tasting while playing trading and making money with the guidance of teachers\' instructions. No matter your background, if you are a non employed, a trading lover, a working class, or part of a high income group, everyone is welcomed to join, come to Ant Studio and enjoy the unique trading experience.")}
+              div.coop_show_btn
+                | #{LangService.flat("pc","Click for details")} 
+                i.coop_arrow.down
+                
+  include ./layout/footer
+block scripts
+  
+  script.
+    window.gLang=gLang=LangService.states.lang;
+    try{ga('send', 'pageview',location.pathname);}catch(e){}
+
+  script(src="#{url_cdn}/pc/js/libs/jquery.min.js")
+  script(src="#{url_cdn}/pc/js/common.js")
+  script(src="#{url_cdn}/pc/js/header.js")
+  script(src="#{url_cdn}/pc/js/online_service.js")
+    
+  script.
+    var Cookie = {
+      getCookie:function(key) {
+          var arr,
+              reg = new RegExp("(^| )" + key + "=([^;]*)(;|$)");
+          if (arr = document.cookie.match(reg)) {
+              return unescape(arr[2]);
+          } else {
+              return null;
+          }
+      }
+    }
+    function  CooperationHandle(){
+      var ELE={
+        $coopBanner:$(".coop_banner"),
+        $coopShowBtn:$(".coop_show_btn"),
+        $coopPartner:$(".coop_partner_detail"),
+        $coopAbout:$(".coop_about_list"),
+        $coopArrow:$(".coop_arrow"),
+      }
+      var Handle={
+        toggleBannner:function(){
+          var _language=Cookie.getCookie("language");
+          ELE.$coopBanner.addClass(_language);
+          ELE.$coopAbout.addClass(_language);
+        },
+        toggleHeight:function(){
+          var _detailH=ELE.$coopPartner.css("height");
+          _detailH=="140px"?ELE.$coopPartner.css({"height":"100%"}):ELE.$coopPartner.css({"height":"140px"});
+          var _arrowFlag = ELE.$coopArrow.hasClass("down");
+          if(_arrowFlag){
+            ELE.$coopArrow.removeClass("down");
+            ELE.$coopArrow.addClass("up");
+          }else{
+          ELE.$coopArrow.removeClass("up");
+          ELE.$coopArrow.addClass("down");
+          }
+        }
+      }
+      function initEven(){
+        ELE.$coopShowBtn.on("click",Handle.toggleHeight);
+      }
+      this.init=function(){
+        Handle.toggleBannner();
+        initEven();
+      }
+    }
+    var coopHandle=new CooperationHandle;
+    coopHandle.init();
+    
+    
+    
+    
+    
+    

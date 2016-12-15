@@ -1,0 +1,266 @@
+
+extends ../layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/pay.css" rel="stylesheet")
+  
+block content
+  div.page#dialogId
+    div.container
+      div.wrap.deposit_info
+        div.header
+          a.icon.user.back#btnBackId(href="javascript:void(0)")
+          div.title Wire Transfer
+        
+        div.content
+          p If you do not own a Credit Card you can still top up your account on ultrabanc.com. The only thing you need to do is to make a direct transfer to the following account:
+          br
+          p 
+            em Company name: 
+            |Finance Managers Co. Limited
+          br
+          p 
+            em Company address: 
+            | Govant Building 1st Floor, PO Box 1276, Port Vila, Vanuatu
+          br
+          p 
+            em Bank's name: 
+            | China Merchants Bank, Hong Kong Branch
+          br
+          p 
+            em Bank's address: 
+            | 20/21F BANK OF AMERICA TOWER 12 HARCOURT RD CENTRAL HK
+          br
+          p 
+            em Bank CODE: 
+            |238
+          br
+          p 
+            em Swift Code: 
+            | CMBCHKHH
+          br
+          p 
+            em USD Account number: 
+            | 2056 4466
+          br
+          p In the REFERENCE or DESCRIPTION part, please write your email address which is your UltraBanc's platform login. With this done, please send us a confirmation email including the screen-shot of the transfer on info@ultrabanc.com and we will be anticipating your wire remittance. The approximate time of archiving your trasfer is 2 working days.
+  div.postform
+    form#depositFormId(action="#{url_api.deposit}" method="post")
+      input#postAmountInputId(type="hidden" name="amount")
+      input#postPaywayInputId(type="hidden" name="channel")
+      input#postPaycodeInputId(type="hidden" name="channelcode")
+      input#postTokenInputId(type="hidden" name="access-token")
+      input#btnsubmitDepositId(type="submit")
+      
+  div.container
+    div.wrap.deposit
+      div.header
+        a.icon.user.back(href="javascript:history.back(-1)")
+        div.title= LangService.flat("mobile","Deposits") 
+      
+      div.content
+        div.form
+          div.field
+            label#depositInfoId 
+          div.field
+            input.input_money#withdrawInputId(type="tel" placeholder="#{LangService.flat('mobile','Please input your account')}")
+          div.field.paylist
+            label= LangService.flat("mobile","Select Payment Method")  
+            ul#payListId
+            div.fix_roll
+          div.field.deposit
+            input.btn.deposit#btnDepositId(type="button" value="#{LangService.flat('mobile','Deposit')}")
+
+block scripts
+  script(src="#{url_cdn}/mobile/js/libs/zepto.min.js" type="text/javascript")
+  script.
+    var toastTimer = null;
+    function showToast(msg){
+      if(toastTimer){clearTimeout(toastTimer)}
+      
+      $(".toast").removeClass("hide").addClass("show").find(".msg").html(LangService.i18n(msg)); 
+      toastTimer = setTimeout(function(){
+        $(".toast").removeClass("show").addClass("hide").find(".msg").html(""); 
+      },3e3);
+    }
+    function PayDeposit(){
+      var ELE = {
+        payList:$("#payListId"),
+        withdrawInput:$("#withdrawInputId"),
+        btnDeposit:$("#btnDepositId"),
+        depositInfo:$("#depositInfoId"),
+        dialog:$("#dialogId"),
+        btnBack:$("#btnBackId"),
+        
+        postAmountInput:$("#postAmountInputId"),
+        postPaywayInput:$("#postPaywayInputId"),
+        postPaycodeInput:$("#postPaycodeInputId"),
+        postTokenInput:$("#postTokenInputId"),
+        btnsubmitDeposit:$("#btnsubmitDepositId"),
+        depositForm:$("#depositFormId"),
+        
+      }
+      var MAX_ACCOUNT_DEPOSIT=0;
+      var MIN_ACCOUNT_DEPOSIT = 10;
+      var _depositData = {money:0,paycode:"",payway:""};
+      var listTpl = '<li payway={PAYWAY} maxDeposit={MAX_DEPOSIT} code={PAYCODE}><i class="logo_bank"><img src="{LOGO_BANK}") /></i><i class="icon common select {SELECTED}"></i>'
+      var Handler = {
+        changeDepositInfo:function(min_money,max_money){
+          var _tips = LangService.i18n("The minimum deposit amount is of ${min_money}, the maximum is of ${max_money}");
+          var _minmoney=min_money?(min_money):MIN_ACCOUNT_DEPOSIT;
+          var _realTips = _tips.replace(/{min_money}/,_minmoney).replace(/{max_money}/,max_money);
+          
+          ELE.depositInfo.html(_realTips);
+        },
+        initPayList:function(lists){
+          //- console.log(lists);
+          var _html = "";
+          var count = 0;
+          
+          $.each(lists,function(key,item,a,b){
+            var _selectStyle="";
+            if(count==0){
+              _selectStyle="checked";
+              MAX_ACCOUNT_DEPOSIT=item[2];
+              _depositData.paycode = item[1];
+              _depositData.payway = item[0];
+            }
+            //- console.log(a+"--"+b+"--"+key+"==="+item);
+            var _logobank="//#{server.host}/public/pc/images/pay/"+key+".png";
+            _html += listTpl.replace(/{LOGO_BANK}/,_logobank).replace(/{PAYWAY}/,item[0]).replace(/{PAYCODE}/,item[1]).replace(/{MAX_DEPOSIT}/,item[2]).replace(/{SELECTED}/,_selectStyle);  
+            count++;
+          })
+          ELE.payList.html(_html);
+          Handler.changeDepositInfo(MIN_ACCOUNT_DEPOSIT,MAX_ACCOUNT_DEPOSIT);
+        },
+        loadPayList:function(){
+          $.ajax({
+            url:"#{url_api.channels}",
+            type:"get",
+            data:{
+              "access-token":Cookie.getCookie("token"),
+              "lang":Cookie.getCookie("language")
+            },
+            success:function(resp){
+              if(!resp||resp.status!=1){
+                if(resp.status==401||resp.status=="401"){
+                  Cookie.deleteCookie("token");
+                  Cookie.deleteCookie("userinfo");
+                }
+                showToast(resp.msg);
+                setTimeout(function(){
+                  location.href="/mobile/user";
+                },3e3);
+                return;
+              }
+              Handler.initPayList(resp.data||{});
+            },
+            error:function(err){
+              showToast(err.message);
+            }
+          })
+        },
+        doSelectPayway:function(evt){
+          ELE.payList.find("i.select").removeClass("checked");
+          var _target = evt.target;
+          var _liEle = _target;
+          var _checkEle = null;
+          //找到li元素
+          if(_target.tagName.toLowerCase()=="i"){
+            _liEle = _target.parentNode;
+          }
+          if(_target.tagName.toLowerCase()=="img"){
+            _liEle = _target.parentNode.parentNode;
+          }
+          //高亮当前选中
+          $(_liEle).find("i.select").addClass("checked");
+          var _paycode = $(_liEle).attr("code"); 
+          var _payway = $(_liEle).attr("payway"); 
+          var _maxdeposit = $(_liEle).attr("maxdeposit");
+          //- console.log(_paycode+"==="+_payway+"=="+_maxdeposit);
+          
+          _depositData.paycode = _paycode;
+          _depositData.payway = _payway;
+          
+          MAX_ACCOUNT_DEPOSIT=_maxdeposit;
+          
+          Handler.changeDepositInfo(MIN_ACCOUNT_DEPOSIT,MAX_ACCOUNT_DEPOSIT);
+        },
+        doDeposit:function(evt){
+          if(_depositData.payway=="wiretransfer"){
+            ELE.dialog.css("left","0");
+            return;
+          }
+          var _money = ELE.withdrawInput.val();
+          if(!_money||_money<MIN_ACCOUNT_DEPOSIT||isNaN(parseInt(_money))){
+            var _tips = LangService.i18n("The minimum deposit amount is of ${min_money}, the maximum is of ${max_money}");
+            showToast(_tips.replace(/{min_money}/,MIN_ACCOUNT_DEPOSIT).replace(/{max_money}/,MAX_ACCOUNT_DEPOSIT))
+            ELE.withdrawInput.val("");
+            return;
+          }
+          _depositData.money = _money;
+          _depositData["token"]=Cookie.getCookie("token");
+          //- console.log(_depositData);
+          
+          ELE.postAmountInput.val(_depositData.money);
+          ELE.postPaywayInput.val(_depositData.payway);
+          ELE.postPaycodeInput.val(_depositData.paycode);
+          ELE.postTokenInput.val(_depositData.token);
+          
+          //- console.log($(".postform").html());
+          //- return;
+          ELE.btnsubmitDeposit.click();
+          
+          //- $.ajax({
+          //-   url:"#{url_api.deposit}",
+          //-   data:{
+          //-     "access-token":_depositData.token,
+          //-     "amount":_depositData.money,
+          //-     "channel":_depositData.payway,
+          //-     "channelcode":_depositData.paycode
+          //-   },
+          //-   type:"post",
+          //-   success:function(resp){
+          //-     if(!resp||resp.status!=1){
+          //-       if(resp.status==401||resp.status=="401"){
+          //-         Cookie.deleteCookie("token");
+          //-         Cookie.deleteCookie("userinfo");
+          //-       }
+          //-       showToast(resp.msg);
+          //-       return;
+          //-     }ELE.dialog.css("left","-10rem")
+          //-     console.log(resp);
+          //-   },
+          //-   error:function(err){
+          //-     showToast(err.message);
+          //-   }
+          //- })
+        },
+        doBack:function(evt){
+          evt.stopPropagation();
+          ELE.dialog.css("left","-100%")
+        }
+      }
+      function initEvent(){
+        ELE.btnDeposit.on("click",Handler.doDeposit);
+        ELE.payList.on("click",Handler.doSelectPayway);
+        ELE.btnBack.on("click",Handler.doBack);
+      }
+      this.init = function(){
+        var _token = Cookie.getCookie("token");
+        if(!_token){
+          var _userinfo = Cookie.getCookie("userinfo");
+          if(_userinfo){Cookie.deleteCookie(_userinfo);}
+          location.href="/mobile/user";
+          return;
+        }
+        //reload deposit form action
+        var _urlDeposit = ELE.depositForm.attr("action")+"?access-token="+_token;
+        ELE.depositForm.attr("action",_urlDeposit);
+        
+        Handler.loadPayList();
+        
+        initEvent();
+      }
+    }
+    var deposit = new PayDeposit();
+    deposit.init();

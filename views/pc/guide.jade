@@ -1,0 +1,31 @@
+extends ./layout/main
+
+block styles
+  link(href="#{url_cdn}/pc/css/guide.css" rel="stylesheet")
+
+block content
+  //- div(id="loadingContainerId" style="display:none;")
+  //-   img(src="/pc/images/loading.gif")
+  div(id="dialogContainerId")
+  div(id="containerId" style="display:block;")!= html
+  include ./layout/footer
+block scripts
+  //- script(src="#{url_cdn}/pc/js/i18n/lang_src_#{language}.js")
+  script.
+    //- function domReady(){
+    //-   document.getElementById("loadingContainerId").style.display="none";
+    //-   document.getElementById("containerId").style.display="block";
+    //- }
+    window.gLang=gLang= LangService.states.lang;
+    
+    //- if(document.addEventListener){
+    //-   document.addEventListener("DOMContentLoaded",domReady,false);
+    //-   //- window.addEventListener("load",domReady,false);
+    //- }else if(document.attachEvent){
+    //-   document.attachEvent("onload",domReady,false);
+    //- }
+    try{ga('send', 'pageview',location.pathname);}catch(e){}
+
+  script(src="#{url_cdn}/pc/js/common.js")
+  //script(src="#{url_cdn.script}/pc/js/libs/jquery.min.js")
+  script(src="#{url_cdn}/pc/js/guide.js")

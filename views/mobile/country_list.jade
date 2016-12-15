@@ -1,0 +1,46 @@
+extends ./layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/country.css" rel="stylesheet")
+  
+block content
+  div.container
+    div.wrap.country
+      div.header
+        a.icon.user.back(href="javascript:history.back(-1)")
+        div.title #{LangService.flat('mobile', "Select country")}
+      div.diver
+      div.area.hot #{LangService.flat('mobile', "All areas")}
+      div.content
+        ul.country_list#countryListId
+          each val,key in country_list
+            -code = key.toLowerCase();
+            li("ct_code"="#{code}" "ct_shortname"="#{val.currency}" "ct_phonecode"="#{val.callingcode}")
+              i(class="icon flag #{code}")
+              =val.name 
+              span= "+"+val.callingcode
+block script
+  script.
+    var ELE={
+      countryList:document.getElementById("countryListId")
+    }
+    function doSelectCountry(evt){
+      var _target = evt.target;
+      if(_target.tagName.toLowerCase()=="span"){
+        _target = _target.parentNode;
+      }
+      if(_target.tagName.toLowerCase()=="li"){
+        var _code = _target.getAttribute("ct_code")
+        var _stname = _target.getAttribute("ct_shortname")
+        var _phonecode = _target.getAttribute("ct_phonecode")
+        //- console.log(_code+"-"+_stname+"="+_phonecode);
+      }
+      return false;
+    }
+    var Handler = {
+      selectCountry:doSelectCountry,
+    }
+    function initEvent(){
+      ELE.countryList.addEventListener("click",Handler.selectCountry,false);
+    }
+    
+    initEvent();

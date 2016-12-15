@@ -1,0 +1,163 @@
+extends ../layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/user.css" rel="stylesheet")
+block content
+  div.container.login
+    div.wrap.login
+      a.btn.icon.user.close(href="javascript:history.back(-1)")
+      div.banner
+        i#logoId.logos.en
+      div.form
+        div.field
+          input#emailInputId(type="email" autocomplete="off" autofocus placeholder="#{LangService.flat('mobile', 'Email')}")
+        div.field
+          input#passwordInputId(type="password" autocomplete="off" min="6" max="14" placeholder="#{LangService.flat('mobile', 'Password')}")
+        div.field
+          a.link(href="/mobile/user/forget_password")= LangService.flat('mobile', 'Forgot password')
+        div.field
+          button.btn.login#btnLoginId= LangService.flat('mobile', 'Sign In')
+        div.field
+          a.btn.reg(href="/mobile/user/reg")= LangService.flat('mobile', 'Sign Up')
+        div.field.spacer
+        div.field.third
+          a.btn.login_fb(href="/user/oauth?client=facebook&from=www")
+            i.icon.user.fb
+            span.text= LangService.flat('mobile', 'Sign In')
+          a.btn.login_gg(href="/user/oauth?client=google&from=www")
+            i.icon.user.gg
+            span.text= LangService.flat('mobile', 'Sign In')
+block scripts
+  script(src="#{url_cdn}/mobile/js/libs/zepto.min.js" type="text/javascript")
+  script.
+    var toastTimer = null;
+    function showToast(msg){
+      if(toastTimer){clearTimeout(toastTimer)}
+      $(".toast").removeClass("hide").addClass("show").find(".msg").html(LangService.i18n(msg));
+      toastTimer = setTimeout(function(){
+        $(".toast").removeClass("show").addClass("hide").find(".msg").html(""); 
+      },3e3);
+    }
+    
+    function UserLogin(){
+      var ELE = {
+        btnLogin:$("#btnLoginId"),
+        emailInput:$("#emailInputId"),
+        passwordInput:$("#passwordInputId"),
+        logo:$("#logoId")
+      }
+      
+      var Handler = {
+        validPassword:function(pw){
+          if(!pw){return "Enter your password";}
+          if(pw.length<6||pw.length>14){
+            return "password must be between 6 and 14 characters";
+          }
+          return "";
+        },
+        validEmail:function(email){
+          if (!email) {
+            return "Enter your email address";
+          }
+
+          var emailValid = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+          if (!emailValid.test(email)) {
+            return "Enter a valid email address";
+          }
+
+          return "";
+        },
+        doLogin:function(){
+          
+          var _email = ELE.emailInput.val();
+          var _password = ELE.passwordInput.val();
+          
+          //valid
+          var validEmialMsg = Handler.validEmail(_email);
+          if(validEmialMsg){
+            showToast(validEmialMsg);
+            return;
+          }
+          var validPasswordMsg = Handler.validPassword(_password);
+          if(validPasswordMsg){
+            showToast(validPasswordMsg);
+            return;
+          }
+          //- console.log(_email+"====="+_password);
+          var _postData = {
+            "LoginForm[email]": _email,
+            "LoginForm[password]": _password,
+            "lang": Cookie.getCookie("language")
+          }
+          ELE.btnLogin.attr("disabled",true);
+          //do login
+          $.ajax({
+            url:"#{url_api.login}",
+            type:"post",
+            data:_postData,
+            success:function(resp){
+              ELE.btnLogin.removeAttr("disabled");
+              //- console.log(resp);
+              if(resp.status!=1||!resp.data){
+                showToast(resp.msg);
+              }
+              var _token = resp.data.token;
+              var _userinfo = resp.data.userinfo;
+              Cookie.setCookie("userinfo", JSON.stringify(_userinfo), 7200);
+              Cookie.setCookie("token", _token, 7200);
+              //- showToast("Login success!")
+              //- setTimeout(function(){
+              var _backUrl = location.search.replace(/.backurl=(.*)/,"$1");
+              location.href="/mobile/"+_backUrl;
+              //- },3e2);
+            },
+            error:function(err){
+              ELE.btnLogin.removeAttr("disabled");
+              showToast(err.msg)
+            }
+          })
+        }
+      }
+      function initEvt(){        
+        ELE.btnLogin.on("click",Handler.doLogin);
+      }
+      this.init = function(){
+        //token存在就替换当前的历史地址为用户中心
+        var _token = Cookie.getCookie("token");
+        var _userInfo = Cookie.getCookie("userinfo");
+        if(_token && _userInfo){
+          location.replace("/mobile/user");
+          return;
+        } else {
+          Cookie.deleteCookie("token");
+          Cookie.deleteCookie("userinfo");
+        }
+        
+        //根据语言初始化logo相关
+        var _lang = Cookie.getCookie("language");
+        var _logoCode = "";
+        if(_lang=="zh-CN"||_lang=="zh-TW"||_lang=="zh-HK"){
+          _logoCode = _lang.toLowerCase().replace(/zh-/,"");
+          ELE.logo.removeClass("cn tw hk").addClass(_logoCode);
+        }
+        initEvt();
+      }
+    }
+    
+  script.
+    var EventUtil = {
+      addHandler: function (element, type, handler) {
+          if (element.addEventListener) {
+              element.addEventListener(type, handler, false);
+          } else if (element.attachEvent) {
+              element.attachEvent("on" + type, handler);
+          } else {
+              element["on" + type] = handler;
+          }
+      }
+    };
+    (function () {
+      EventUtil.addHandler(window, "pageshow", function (event) {
+        var Login = new UserLogin();
+        Login.init();
+      });
+    })();

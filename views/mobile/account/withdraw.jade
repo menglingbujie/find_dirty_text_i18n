@@ -1,0 +1,121 @@
+
+extends ../layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/pay.css" rel="stylesheet")
+  
+block content
+  div.container.withdraw
+    div.wrap.withdraw
+      div.header
+        a.icon.user.back(href="javascript:history.back(-1)")
+        div.title= LangService.flat("mobile","Withdraw")
+      div.content
+        div.form
+          div.field(style="height:0.5333333333333333rem;")
+          //-   label= LangService.flat("mobile","After requesting your first withdrawal you will receive an email with instructions.")
+          div.field
+            input.input_money#withdrawMoneyInputId(type="tel" placeholder="#{LangService.flat('mobile','Please input your account')}")
+          div.field
+            input.btn.withdraw#btnWithdrawId(type="button" value="#{LangService.flat('mobile','Withdraw')}")
+            
+        div.tips.cn
+          p 1. 我们不收取任何手续费。
+          p 2. 用户最低提款金额为$10。
+          p 3. 用户提交小于或等于$100的提款申请，托管银行扣除5%手续费。
+          p 4. 用户提交$100以上的提款申请，请参照：
+          p （1）交易量达到入金金额的40%，每天首次提款免手续费，费用由ULTRABANC承担；
+          p （2）交易量未达到入金金额的40%，托管银行扣除2%手续费。
+          p 5. 用户提交$2000以上提款申请，不收取手续费，费用由ULTRABANC承担。
+          p 6. 用户首次申请提款前，需要提交身份证信息和银行卡信息。提款资料审核在1~3个工作日。
+          p 7. 如果已参加活动的账户，出金规则参考活动规则。
+          p 8. 本公司遵循反洗钱、反套现法案，所有的提款都将被汇款至投资本人的帐户中，不支持信用卡套现。
+          
+        div.tips.en
+          p= LangService.flat("mobile",'1. The minimum withdrawal amount is ${amount}.').replace(/{amount}/,50)
+          p= LangService.flat("mobile",'2. The withdrawal fee is ${fee} per transfer.').replace(/{fee}/,25)
+          p= LangService.flat("mobile",'3. Trader’s total transactions volume must reach 40% of total deposited amount.')
+          p= LangService.flat("mobile",'4. Every withdrawal request greater than ${limit} is free of charge and unlimited as long as requirements set in No.1 and No.3 are met.').replace(/{limit}/,2000)
+          p!= LangService.flat("mobile",'5. Applicants withdrawing for the first time must provide and submit identity proofs, bank account information and sign the <a target="_blank" href="http://source.ultrabanc.com/ultra/ASSESSMENT_OF_APPROPRIATENESS_EN_(11.10).pdf">Assessment of Appropriateness</a>.')
+          p!= LangService.flat("mobile",'6. Applicants who deposited by credit card, must also fill in and submit the <a target="_blank" href="http://source.ultrabanc.com/ultra/Personal_Investor_Agreement_EN(11.14).pdf">Personal Investor Agreement</a>.')
+          p= LangService.flat("mobile",'7. As for the Withdrawal Conditions, if you have participated in the Bonus Activity, please refer to the Activity Rule.')
+          p= LangService.flat("mobile",'8. All applicants are required to provide accurate information at all times.')
+          p= LangService.flat("mobile",'9. ULTRABANC platform strictly abides by the Anti-Money Laundering Policy.')
+
+block scripts
+  script(src="#{url_cdn}/mobile/js/libs/zepto.min.js" type="text/javascript")
+  script.
+    var MIN_WITHDRAW_MONEY = 0;
+    var toastTimer = null;
+    function showToast(msg,isstatic){
+      if(toastTimer){clearTimeout(toastTimer)}
+      if(!isstatic||isstatic=="undefined"||isstatic==true||isstatic=="true"){
+        $(".toast").removeClass("hide").addClass("show").find(".msg").html(LangService.i18n(msg)); 
+      }else{
+        $(".toast").removeClass("hide").addClass("show").find(".msg").html(msg); 
+      }
+      toastTimer = setTimeout(function(){
+        $(".toast").removeClass("show").addClass("hide").find(".msg").html(""); 
+      },3e3);
+    }
+    function PayWithdraw(){
+      var ELE = {
+        tipsCn:$(".tips.cn"),
+        tipsEn:$(".tips.en"),
+        btnWithdraw:$("#btnWithdrawId"),
+        withdrawMoneyInput:$("#withdrawMoneyInputId")
+      }
+      var Handler = {
+        doWithdraw:function(){
+          var _money = ELE.withdrawMoneyInput.val()||0;
+          if(!_money||_money<=MIN_WITHDRAW_MONEY){
+            showToast(LangService.i18n("Minimum withdrawal: ${money}").replace(/{money}/,MIN_WITHDRAW_MONEY),false)
+            ELE.withdrawMoneyInput.val("")
+            return;
+          } 
+          $.ajax({
+            url:"#{url_api.withdraw}?access-token="+Cookie.getCookie("token")+"&lang="+LangService.states.lang,
+            type:"post",
+            data:{
+              "amount":_money,
+            },
+            success:function(resp){
+              if(!resp||resp.status!=1){
+                if(resp.status==401||resp.status=="401"){
+                  Cookie.deleteCookie("token");
+                  Cookie.deleteCookie("userinfo");
+                }
+                showToast(resp.msg);
+                return;
+              }
+              location.href="/mobile/pay/success";
+            },
+            error:function(err){
+              showToast(err.message);
+            }
+          })
+        }
+      }
+      function initEvent(){
+        ELE.btnWithdraw.on("click",Handler.doWithdraw); 
+      }
+      this.init = function(){
+        var _token = Cookie.getCookie("token");
+        if(!_token){
+          var _userinfo = Cookie.getCookie("userinfo");
+          if(_userinfo){Cookie.deleteCookie(_userinfo);}
+          location.href="/mobile/user";
+          return;
+        }
+        var _lang = Cookie.getCookie("language");
+        if(_lang==="zh-CN"){
+          ELE.tipsEn.hide();
+          ELE.tipsCn.show();
+        }else{
+          ELE.tipsCn.hide();
+          ELE.tipsEn.show();
+        }
+        initEvent();
+      }
+    }
+    var withdraw = new PayWithdraw();
+    withdraw.init();

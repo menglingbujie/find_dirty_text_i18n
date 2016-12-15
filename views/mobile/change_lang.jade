@@ -1,0 +1,48 @@
+extends ./layout/main
+block stylesheet
+  link(href="#{url_cdn}/mobile/css/country.css" rel="stylesheet")
+  
+block content
+  div.container
+    div.wrap.langs
+      div.header
+        a.icon.user.back(href="javascript:history.back(-1)")
+        div.title #{LangService.flat('mobile', "Select language")}
+      div.diver
+      div.area.hot #{LangService.flat('mobile', "All languages")}
+      div.content
+        ul.country_list#countryListId
+          each val,key in langs
+            -code = key.toLowerCase();
+            -lang = val.lang;
+            li("lang"="#{lang}")
+              i(class="icon flag #{code}")
+              span #{LangService.flat('mobile', val.name)}
+              //- span= "+"+val.callingcode
+block scripts
+  script.
+    var ELE={
+      countryList:document.getElementById("countryListId")
+    }
+    var _goTimer = null;
+    function doSelectCountry(evt){
+      if(_goTimer){clearTimeout(_goTimer)}
+      var _target = evt.target;
+      if(_target.tagName.toLowerCase()=="span"){
+        _target = _target.parentNode;
+      }
+      if(_target.tagName.toLowerCase()=="li"){
+        var _code = _target.getAttribute("lang")
+        Cookie.setCookie("language",_code,7200);
+        _goTimer = setTimeout(function(){location.href="/mobile/user"},500);
+      }
+      return false;
+    }
+    var Handler = {
+      selectCountry:doSelectCountry,
+    }
+    function initEvt(){
+      ELE.countryList.addEventListener("click",Handler.selectCountry,false);
+    }
+    
+    initEvt();

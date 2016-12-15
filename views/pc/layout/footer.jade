@@ -1,0 +1,41 @@
+
+footer.footer
+  div.wrap
+    div.panel_nav
+      ul.nav
+        li.item
+          h2.title= LangService.flat("pc","ULTRABANC")
+          a(href="/info?ContactUs")= LangService.flat("pc","Contact Us")
+          a(href="/guide")= LangService.flat("pc","User guide")
+          a(href="/info?Glossary")= LangService.flat("pc","Terminologies")
+          a(href="/info?faqs#Tradingfaq")= LangService.flat("pc","Trading FAQs")
+        li.item
+          h2.title= LangService.flat("pc","EDUCATION")
+          a(href="/info?features#60Seconds")= LangService.flat("pc","60 Seconds")
+          a(href="/info?features#HighLow")= LangService.flat("pc","High/Low")
+          a(href="/info?features#OneTouch")= LangService.flat("pc","One Touch")
+          a(href="/info?features#Signals")= LangService.flat("pc","Signals")
+          
+        li.item
+          h2.title= LangService.flat("pc","Activity")
+          a(href="/activity/insurance")= LangService.flat("pc","Insurance Activity")
+          a(href="/activity/ib")= LangService.flat("pc","IB  Affiliate")
+          a(href="/coop")= LangService.flat("pc","Cooperation")
+          a.promote(href="http://sensecent.com/login#register")= LangService.flat("pc","Affiliate Program")
+        li.item
+          h2.title= LangService.flat("pc","LEGAL DETAILS")
+          a(href="/info?leagle#Terms")= LangService.flat("pc","Terms and Conditions")
+          a(href="/info?leagle#Security")= LangService.flat("pc","Security & Privacy")
+          a(href="/info?leagle#GeneralDisclaimer")= LangService.flat("pc","General Disclaimer")
+          a(href="/info?leagle#AML")= LangService.flat("pc","AML")
+          
+      div.desp
+        if ( process.env.language!= "zh-CN" )
+          p.en= LangService.flat("pc","The site is owned and managed by Finance Managers Co. Limited based at Govant Building 1st Floor PO Box 1276 Port Vila in Vanuatu")
+        else
+          p.cn= LangService.flat("pc","Finance Managers Co. Limited, Govant Building 1st Floor, PO Box 1276, Port Vila, Vanuatu")
+          p.cn= LangService.flat("pc","Business enterprise regulated under the laws of Saint Vincent")
+        p= LangService.flat("pc","Tel：(+852) 53482546")
+        p= LangService.flat("pc","Email： info@ultrabanc.com")
+        p= LangService.flat("pc","Copyright @ 2016 Ultrabanc")
+    div.panel_desp= LangService.flat("pc","RISK WARNING: Trading Binary Options is highly speculative and carries a high level of risk and may not be suitable for all investors. You may lose some or all of your invested capital; therefore you should not speculate with capital that you cannot afford to lose. You should be aware of all the risks associated with trading Binary Options.")
